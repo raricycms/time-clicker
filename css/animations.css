@@ -1,0 +1,169 @@
+/* 简化的动画效果 */
+
+/* 点击效果动画 */
+@keyframes clickPop {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.3) translateY(-40px);
+        opacity: 0;
+    }
+}
+
+/* 建筑购买动画 */
+@keyframes purchaseFlash {
+    0%, 100% {
+        background: #f8f9fa;
+        border-color: #e9ecef;
+    }
+    50% {
+        background: #d4edda;
+        border-color: #28a745;
+    }
+}
+
+/* 数字更新动画 */
+@keyframes numberUpdate {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 升级购买动画 */
+@keyframes upgradeFlash {
+    0%, 100% {
+        background: #fff3cd;
+        border-color: #ffeaa7;
+    }
+    50% {
+        background: #d1ecf1;
+        border-color: #bee5eb;
+    }
+}
+
+/* 成就解锁动画 */
+@keyframes achievementUnlock {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 进度条动画 */
+@keyframes progressGrow {
+    from {
+        width: 0%;
+    }
+    to {
+        width: var(--target-width);
+    }
+}
+
+/* 应用动画的类 */
+.click-effect {
+    animation: clickPop 0.6s ease-out forwards;
+    position: absolute;
+    pointer-events: none;
+    color: #007bff;
+    font-weight: bold;
+    font-size: 1.2rem;
+    z-index: 1000;
+}
+
+.building-purchase {
+    animation: purchaseFlash 0.4s ease-out;
+}
+
+.upgrade-purchase {
+    animation: upgradeFlash 0.4s ease-out;
+}
+
+.number-count {
+    animation: numberUpdate 0.3s ease-out;
+}
+
+.achievement-unlock {
+    animation: achievementUnlock 0.8s ease-out;
+}
+
+/* 悬停效果 */
+.time-machine:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+.building-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.upgrade-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 203, 110, 0.3);
+}
+
+/* 响应式动画 */
+@media (max-width: 768px) {
+    .click-effect {
+        font-size: 1rem;
+        animation-duration: 0.5s;
+    }
+    
+    .building-purchase, .upgrade-purchase {
+        animation-duration: 0.3s;
+    }
+}
+
+/* 减少动画偏好设置 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .time-machine:hover, .building-card:hover, .upgrade-card:hover {
+        transform: none !important;
+    }
+}
+
+/* 平滑过渡 */
+.time-machine, .building-card, .upgrade-card, .achievement-card {
+    transition: all 0.2s ease;
+}
+
+.progress-fill {
+    transition: width 0.5s ease;
+}
+
+/* 加载动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}

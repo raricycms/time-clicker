@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时光机修复计划 - Time Clicker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- 游戏标题和状态栏 -->
+        <header class="game-header">
+            <h1>🕰️ 时光机修复计划</h1>
+            <div class="status-bar">
+                <div class="time-energy">
+                    <span class="label">时间能量:</span>
+                    <span id="timeEnergy" class="value">0</span>
+                    <span class="unit">点</span>
+                </div>
+                <div class="energy-per-second">
+                    <span class="label">每秒产出:</span>
+                    <span id="energyPerSecond" class="value">0</span>
+                    <span class="unit">点/秒</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <span class="progress-text" id="progressText">0%</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主游戏区域 -->
+        <main class="game-main">
+            <!-- 左侧：时光机点击区域 -->
+            <section class="click-area">
+                <div class="time-machine-container">
+                    <div class="time-machine" id="timeMachine">
+                        🕰️
+                    </div>
+                    <div class="click-effect" id="clickEffect"></div>
+                </div>
+                <div class="click-info">
+                    <p>点击时光机收集时间能量！</p>
+                    <p class="click-power">每次点击: <span id="clickPower">1</span> 点</p>
+                </div>
+            </section>
+
+            <!-- 右侧：建筑商店 -->
+            <section class="buildings-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0;">⚙️ 建筑</h2>
+                    <div class="buy-amount-selector">
+                        <span style="color: #6c757d; margin-right: 8px;">购买数量:</span>
+                        <button class="buy-amount-btn active" data-amount="1">1</button>
+                        <button class="buy-amount-btn" data-amount="10">10</button>
+                        <button class="buy-amount-btn" data-amount="50">50</button>
+                        <button class="buy-amount-btn" data-amount="100">100</button>
+                    </div>
+                </div>
+                <div class="buildings-grid" id="buildingsGrid">
+                    <!-- 建筑将通过JavaScript动态生成 -->
+                </div>
+            </section>
+        </main>
+
+        <!-- 标签页系统 -->
+        <section class="tabs-section">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="upgrades">⬆️ 升级</button>
+                <button class="tab-btn" data-tab="achievements">🏆 成就</button>
+            </div>
+            
+            <div class="tab-content active" id="upgrades-tab">
+                <div class="upgrades-grid" id="upgradesGrid">
+                    <!-- 升级将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="achievements-tab">
+                <div class="achievements-grid" id="achievementsGrid">
+                    <!-- 成就将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 游戏脚本 -->
+    <script src="js/game.js"></script>
+    <script src="js/buildings.js"></script>
+    <script src="js/upgrades.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>
