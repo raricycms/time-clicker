@@ -57,7 +57,7 @@ class BuildingsManager {
                 name: '原神',
                 description: '原神在后台运行，优化整个系统性能，同时产生时间能量',
                 baseCost: 50000,
-                baseProduction: 260,
+                baseProduction: 420,
                 icon: '🎲',
                 unlocked: false,
                 type: 'normal' // 改为普通建筑
@@ -66,8 +66,8 @@ class BuildingsManager {
                 id: 'prism',
                 name: '三棱镜',
                 description: '分解光谱，每个光子的波长变化都被转换为时间能量',
-                baseCost: 500000,
-                baseProduction: 1400,
+                baseCost: 1000000,
+                baseProduction: 5000,
                 icon: '🔻',
                 unlocked: false,
                 type: 'normal'
@@ -76,8 +76,8 @@ class BuildingsManager {
                 id: 'time_resistor',
                 name: '时间电阻',
                 description: '特制电阻器，每个通过的电子都在时空中留下痕迹，产生能量',
-                baseCost: 5000000,
-                baseProduction: 7800,
+                baseCost: 20000000,
+                baseProduction: 62500,
                 icon: '⚡',
                 unlocked: false,
                 type: 'normal'
@@ -86,8 +86,8 @@ class BuildingsManager {
                 id: 'grandmother_clock',
                 name: '祖母钟',
                 description: '古老的钟摆制造时间悖论，从因果循环中提取能量',
-                baseCost: 75000000,
-                baseProduction: 44000,
+                baseCost: 400000000,
+                baseProduction: 770000,
                 icon: '🕰️',
                 unlocked: false,
                 type: 'normal'
@@ -96,8 +96,8 @@ class BuildingsManager {
                 id: 'schrodinger_box',
                 name: '薛定谔的猫箱',
                 description: '量子叠加态的猫在箱中波动，每次观测都产生大量能量',
-                baseCost: 1000000000,
-                baseProduction: 260000,
+                baseCost: 10000000000,
+                baseProduction: 11700000,
                 icon: '📦',
                 unlocked: false,
                 type: 'normal'
@@ -106,8 +106,8 @@ class BuildingsManager {
                 id: 'recursive_copier',
                 name: '递归复制机',
                 description: '自我复制的机器，复制数量越多，单个机器效率越高',
-                baseCost: 15000000000,
-                baseProduction: 1600000,
+                baseCost: 300000000000,
+                baseProduction: 214000000,
                 icon: '♾️',
                 unlocked: false,
                 type: 'recursive' // 特殊类型：数量影响产量
@@ -116,8 +116,8 @@ class BuildingsManager {
                 id: 'js_console',
                 name: 'JavaScript Console',
                 description: '通过修改现实的代码，直接从虚无中创造时间能量',
-                baseCost: 200000000000,
-                baseProduction: 10000000,
+                baseCost: 10000000000000,
+                baseProduction: 4500000000,
                 icon: '💻',
                 unlocked: false,
                 type: 'normal'
@@ -126,8 +126,8 @@ class BuildingsManager {
                 id: 'save_editor',
                 name: '存档读取器',
                 description: '能够读取并修改时间线本身，从平行现实中获取能量',
-                baseCost: 3000000000000,
-                baseProduction: 65000000,
+                baseCost: 100000000000000,
+                baseProduction: 29400000000,
                 icon: '💾',
                 unlocked: false,
                 type: 'normal'
@@ -136,8 +136,8 @@ class BuildingsManager {
                 id: 'fourth_wall_breaker',
                 name: '第四面墙粉碎器',
                 description: '打破游戏与现实的界限，从玩家的注意力中汲取能量',
-                baseCost: 50000000000000,
-                baseProduction: 430000000,
+                baseCost: 10000000000000000,
+                baseProduction: 1920000000000,
                 icon: '🧱',
                 unlocked: false,
                 type: 'normal'
@@ -146,8 +146,8 @@ class BuildingsManager {
                 id: 'real_time_machine',
                 name: '真正的时光机',
                 description: '这就是你要修复的时光机本身，现在它开始自我修复了',
-                baseCost: 1000000000000000,
-                baseProduction: 2900000000,
+                baseCost: 1000000000000000000,
+                baseProduction: 125000000000000,
                 icon: '🚀',
                 unlocked: false,
                 type: 'normal'
@@ -163,8 +163,9 @@ class BuildingsManager {
     
     init() {
         this.setupBuyAmountSelector();
-        this.renderBuildings();
         this.updateProduction();
+        this.checkUnlocks();
+        this.renderBuildings();
     }
     
     setupBuyAmountSelector() {
@@ -276,6 +277,10 @@ class BuildingsManager {
             // 更新UI
             this.renderBuildings();
             window.game.updateUI();
+            // 检查新目标（是否已购买真正的时光机）
+            if (window.game && typeof window.game.checkGoal === 'function') {
+                window.game.checkGoal();
+            }
             
             // 购买动画
             const buildingCard = event.currentTarget;
@@ -426,21 +431,20 @@ class BuildingsManager {
     }
     
     checkUnlocks() {
-        const totalBuildings = Object.values(this.buildingCounts).reduce((sum, count) => sum + count, 0);
-        const energy = window.game ? window.game.timeEnergy : 0;
+        const totalEnergyEarned = window.game ? window.game.totalEnergyEarned : 0;
         
-        // 根据总建筑数量和能量解锁新建筑
+        // 根据累计总产量解锁新建筑（基于建筑的基础价格）
         const unlockConditions = [
-            { index: 5, condition: totalBuildings >= 5 }, // 原神
-            { index: 6, condition: energy >= 100000 }, // 三棱镜
-            { index: 7, condition: totalBuildings >= 10 }, // 时间电阻
-            { index: 8, condition: energy >= 1000000 }, // 祖母钟
-            { index: 9, condition: totalBuildings >= 15 }, // 薛定谔的猫箱
-            { index: 10, condition: energy >= 1e9 }, // 递归复制机
-            { index: 11, condition: totalBuildings >= 25 }, // JS Console
-            { index: 12, condition: energy >= 1e12 }, // 存档读取器
-            { index: 13, condition: totalBuildings >= 40 }, // 第四面墙粉碎器
-            { index: 14, condition: energy >= 1e15 } // 真正的时光机
+            { index: 5, condition: totalEnergyEarned >= this.buildings[5].baseCost }, // 原神
+            { index: 6, condition: totalEnergyEarned >= this.buildings[6].baseCost }, // 三棱镜
+            { index: 7, condition: totalEnergyEarned >= this.buildings[7].baseCost }, // 时间电阻
+            { index: 8, condition: totalEnergyEarned >= this.buildings[8].baseCost }, // 祖母钟
+            { index: 9, condition: totalEnergyEarned >= this.buildings[9].baseCost }, // 薛定谔的猫箱
+            { index: 10, condition: totalEnergyEarned >= this.buildings[10].baseCost }, // 递归复制机
+            { index: 11, condition: totalEnergyEarned >= this.buildings[11].baseCost }, // JS Console
+            { index: 12, condition: totalEnergyEarned >= this.buildings[12].baseCost }, // 存档读取器
+            { index: 13, condition: totalEnergyEarned >= this.buildings[13].baseCost }, // 第四面墙粉碎器
+            { index: 14, condition: totalEnergyEarned >= this.buildings[14].baseCost } // 真正的时光机
         ];
         
         unlockConditions.forEach(({ index, condition }) => {
@@ -485,6 +489,8 @@ class BuildingsManager {
         if (data && data.counts) {
             this.buildingCounts = data.counts;
             this.updateProduction();
+            // 检查建筑解锁状态
+            this.checkUnlocks();
             this.renderBuildings();
         }
     }

@@ -83,6 +83,7 @@ class UIManager {
             <div class="menu-buttons">
                 <button class="menu-item" id="statsButton">📊 统计信息</button>
                 <button class="menu-item" id="settingsButton">⚙️ 设置</button>
+                <button class="menu-item" id="exportUpgradeListButton">📑 导出升级清单</button>
                 <button class="menu-item" id="exportButton">💾 导出存档</button>
                 <button class="menu-item" id="importButton">📁 导入存档</button>
                 <button class="menu-item" id="resetButton">🔄 重置游戏</button>
@@ -127,6 +128,7 @@ class UIManager {
         document.getElementById('statsButton').addEventListener('click', () => this.showStats());
         document.getElementById('settingsButton').addEventListener('click', () => this.showSettings());
         document.getElementById('exportButton').addEventListener('click', () => this.exportSave());
+        document.getElementById('exportUpgradeListButton').addEventListener('click', () => this.exportUpgradeListMarkdown());
         document.getElementById('importButton').addEventListener('click', () => this.importSave());
         document.getElementById('resetButton').addEventListener('click', () => this.resetGame());
         document.getElementById('helpButton').addEventListener('click', () => this.showHelp());
@@ -144,6 +146,85 @@ class UIManager {
                 this.closeAllPanels();
             }
         });
+    }
+
+    // 生成并复制“阈值翻倍升级 + 价格”的 Markdown 清单
+    exportUpgradeListMarkdown() {
+        const um = window.upgradesManager;
+        if (!um) {
+            window.game?.showNotification('升级系统未初始化', 'error');
+            return;
+        }
+        // 分组：仅建筑升级（含固定与自动生成），按建筑归档
+        const buildingMap = new Map();
+        const buildingNames = {
+            'alarm_clock': '闹钟',
+            'graphics_card': '显卡',
+            'cpu': 'CPU',
+            'genshin_impact': '原神',
+            'prism': '三棱镜',
+            'time_resistor': '时间电阻',
+            'grandmother_clock': '祖母钟',
+            'schrodinger_box': '薛定谔的猫箱',
+            'recursive_copier': '递归复制机',
+            'js_console': 'JavaScript Console',
+            'save_editor': '存档读取器',
+            'fourth_wall_breaker': '第四面墙粉碎器',
+            'real_time_machine': '真正的时光机'
+        };
+        um.upgrades.forEach(u => {
+            if (u.type !== 'building' || !u.requiredBuilding || typeof u.requiredCount !== 'number') return;
+            const arr = buildingMap.get(u.requiredBuilding) || [];
+            arr.push(u);
+            buildingMap.set(u.requiredBuilding, arr);
+        });
+        // 生成 Markdown
+        let md = '# 阈值翻倍升级清单（自动导出）\n\n';
+        buildingMap.forEach((list, buildingId) => {
+            const display = buildingNames[buildingId] || buildingId;
+            // 按数量升序
+            list.sort((a, b) => a.requiredCount - b.requiredCount);
+            md += `## ${display}（${buildingId}）\n`;
+            md += '| 阈值 | 升级名称 | 价格 |\n|-----|----------|------|\n';
+            list.forEach(u => {
+                md += `| ${u.requiredCount} | ${u.name} | ${this.formatNumber(u.cost)} |\n`;
+            });
+            md += '\n';
+        });
+        // 复制到剪贴板
+        this.copyToClipboard(md);
+        window.game?.showNotification('升级清单已复制为 Markdown！', 'success');
+    }
+
+    copyToClipboard(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    }
+
+    formatNumber(num) {
+        if (num >= 1e18) {
+            return (num / 1e18).toFixed(2) + 'Qt';
+        } else if (num >= 1e15) {
+            return (num / 1e15).toFixed(2) + 'Qa';
+        } else if (num >= 1e12) {
+            return (num / 1e12).toFixed(2) + 'T';
+        } else if (num >= 1e9) {
+            return (num / 1e9).toFixed(2) + 'B';
+        } else if (num >= 1e6) {
+            return (num / 1e6).toFixed(2) + 'M';
+        } else if (num >= 1e3) {
+            return (num / 1e3).toFixed(2) + 'K';
+        } else if (num >= 10) {
+            return num.toFixed(1);
+        } else if (num >= 1) {
+            return num.toFixed(2);
+        } else {
+            return num.toFixed(3);
+        }
     }
     
     toggleMenu() {
@@ -246,8 +327,12 @@ class UIManager {
                         <span class="stat-value">${Object.keys(buildings.buildingCounts).length}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">总产出:</span>
+                        <span class="stat-label">当前产出:</span>
                         <span class="stat-value">${game.formatNumber(buildings.totalProduction)}/秒</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">累计产量:</span>
+                        <span class="stat-value">${game.formatNumber(game.totalEnergyEarned)}</span>
                     </div>
                 </div>
                 

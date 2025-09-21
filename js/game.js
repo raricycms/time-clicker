@@ -7,7 +7,9 @@ class TimeClickerGame {
         this.totalClicks = 0;
         this.manualClicks = 0; // 只计算手动点击
         this.gameStartTime = Date.now();
-        this.targetEnergy = 1e12; // 1万亿点时间能量
+        this.targetEnergy = 1e12; // 旧目标（不再使用）
+        this.totalEnergyEarned = 0; // 累计总产量
+        this.goalReached = false; // 新目标：购买到一个真正的时光机
         
         // 游戏状态
         this.isGameActive = true;
@@ -110,10 +112,12 @@ class TimeClickerGame {
     
     addEnergy(amount) {
         this.timeEnergy += amount;
+        this.totalEnergyEarned += amount; // 累计总产量
+        // 新目标由购买建筑触发，不在此处结束游戏
         
-        // 检查是否达到目标
-        if (this.timeEnergy >= this.targetEnergy) {
-            this.completeGame();
+        // 检查建筑解锁
+        if (window.buildingsManager) {
+            window.buildingsManager.checkUnlocks();
         }
     }
     
@@ -215,7 +219,12 @@ class TimeClickerGame {
         const progressFill = document.getElementById('progressFill');
         const progressText = document.getElementById('progressText');
         
-        const progress = Math.min((this.timeEnergy / this.targetEnergy) * 100, 100);
+        // 新进度：距离购买第一台真正的时光机的进度
+        const bm = window.buildingsManager;
+        const real = bm?.buildings.find(b => b.id === 'real_time_machine');
+        const owned = bm ? bm.getBuildingCount('real_time_machine') > 0 : false;
+        const nextCost = bm && real ? bm.getBuildingCost(real) : (real ? real.baseCost : 1);
+        const progress = owned ? 100 : Math.min((this.timeEnergy / Math.max(1, nextCost)) * 100, 100);
         progressFill.style.width = progress + '%';
         progressText.textContent = progress.toFixed(2) + '%';
         
@@ -235,12 +244,28 @@ class TimeClickerGame {
         // 时光机状态更新（简化版）
         const timeMachine = document.getElementById('timeMachine');
         
-        if (this.timeEnergy >= this.targetEnergy) {
+        // 基于“购买真正的时光机”的进度显示状态
+        const bm = window.buildingsManager;
+        const real = bm?.buildings.find(b => b.id === 'real_time_machine');
+        const owned = bm ? bm.getBuildingCount('real_time_machine') > 0 : false;
+        const nextCost = bm && real ? bm.getBuildingCost(real) : (real ? real.baseCost : Infinity);
+        
+        if (owned || this.goalReached) {
             timeMachine.style.background = 'linear-gradient(145deg, #28a745, #20c997)';
-        } else if (this.timeEnergy >= this.targetEnergy * 0.5) {
+        } else if (this.timeEnergy >= nextCost * 0.5) {
             timeMachine.style.background = 'linear-gradient(145deg, #ffc107, #fd7e14)';
         } else {
             timeMachine.style.background = 'linear-gradient(145deg, #007bff, #0056b3)';
+        }
+    }
+
+    // 新目标检测：是否已购买至少一个真正的时光机
+    checkGoal() {
+        if (this.goalReached) return;
+        const bm = window.buildingsManager;
+        if (bm && bm.getBuildingCount('real_time_machine') >= 1) {
+            this.goalReached = true;
+            this.showNotification('🎯 目标达成：已购买真正的时光机！继续游戏解锁更强升级～', 'success');
         }
     }
     
@@ -263,14 +288,14 @@ class TimeClickerGame {
     }
     
     getClickPower() {
-        let clickPower = this.clickPower * this.clickMultiplier;
+        // 基础产量：1 + n% * 每秒产量（n% 由点击升级决定）
+        const bonusFromEps = window.upgradesManager ? window.upgradesManager.getClickBonus() : 0;
+        const baseClick = this.clickPower + bonusFromEps;
         
-        // 添加升级系统的点击加成
-        if (window.upgradesManager) {
-            clickPower += window.upgradesManager.getClickBonus();
-        }
+        // 手动提取器提供乘法加成：(1.02)^x
+        const multiplied = baseClick * this.clickMultiplier;
         
-        return Math.max(0.01, clickPower);
+        return Math.max(0.01, multiplied);
     }
     
     showNotification(message, type = 'info') {
@@ -414,6 +439,8 @@ class TimeClickerGame {
                 gameStartTime: this.gameStartTime,
                 isGameActive: this.isGameActive,
                 clickMultiplier: this.clickMultiplier,
+                totalEnergyEarned: this.totalEnergyEarned,
+                goalReached: this.goalReached,
                 
                 // 成就系统
                 achievements: Array.from(this.achievements || []),
@@ -451,6 +478,8 @@ class TimeClickerGame {
             this.gameStartTime = data.gameStartTime || Date.now();
             this.isGameActive = data.isGameActive !== false;
             this.clickMultiplier = data.clickMultiplier || 1;
+            this.totalEnergyEarned = data.totalEnergyEarned || 0;
+            this.goalReached = data.goalReached || false;
             
             // 恢复成就
             this.achievements = new Set(data.achievements || []);
@@ -468,7 +497,11 @@ class TimeClickerGame {
             // 重新计算产量
             if (window.buildingsManager) {
                 window.buildingsManager.updateProduction();
+                // 检查建筑解锁状态
+                window.buildingsManager.checkUnlocks();
             }
+            // 检查新目标（若存档已拥有真正的时光机）
+            this.checkGoal();
             
             // 更新UI
             this.updateUI();
